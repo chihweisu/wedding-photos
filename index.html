@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wedding Gallery — [新郎姓名] & [新娘姓名]</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --color-bg: #FAF7F4;
+      --color-surface: #F0EAE3;
+      --color-hero-start: #E8DDD5;
+      --color-hero-end: #C9B8B0;
+      --color-text-dark: #3D2F2A;
+      --color-text-mid: #6B5650;
+      --color-text-muted: #8A7068;
+      --color-accent: #B0908A;
+      --color-border: #E0D4CD;
+    }
+
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+      background-color: var(--color-bg);
+      color: var(--color-text-dark);
+      overflow-x: hidden;
+    }
+
+    /* ===== Keyframes ===== */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes bounceArrow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+
+    /* ===== Hero Section ===== */
+    .hero {
+      width: 100%;
+      height: 100vh;
+      height: 100svh;
+      background: linear-gradient(180deg, var(--color-hero-start) 0%, var(--color-hero-end) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .hero__item {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .hero__item.animate {
+      animation: fadeSlideUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+
+    .hero__subtitle {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero__names {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 44px;
+      letter-spacing: 6px;
+      color: var(--color-text-dark);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero__names .amp {
+      font-style: italic;
+      font-size: 52px;
+      margin: 0 0.3em;
+      color: var(--color-accent);
+    }
+
+    .hero__divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      color: var(--color-accent);
+    }
+
+    .hero__divider::before,
+    .hero__divider::after {
+      content: '';
+      width: 60px;
+      height: 1px;
+      background-color: var(--color-accent);
+    }
+
+    .hero__divider span {
+      font-size: 14px;
+    }
+
+    .hero__date {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 15px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--color-text-mid);
+      margin-bottom: 3rem;
+    }
+
+    .hero__scroll {
+      position: absolute;
+      bottom: 2.5rem;
+      cursor: pointer;
+      animation: bounceArrow 1.6s ease-in-out infinite;
+      color: var(--color-text-muted);
+      background: none;
+      border: none;
+      padding: 0.5rem;
+    }
+
+    .hero__scroll svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--color-text-muted);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    /* ===== Gallery Section ===== */
+    .gallery {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 1rem;
+    }
+
+    .gallery__title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-style: italic;
+      font-size: 28px;
+      letter-spacing: 4px;
+      color: var(--color-text-mid);
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .gallery__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+    }
+
+    /* ===== Photo Item ===== */
+    .photo-item {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 3/4;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .photo-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .photo-item--hero {
+      grid-column: 1 / -1;
+      aspect-ratio: 16/9;
+    }
+
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .photo-item::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(61, 47, 42, 0.25);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .photo-item:hover img {
+      transform: scale(1.06);
+    }
+
+    .photo-item:hover::after {
+      opacity: 1;
+    }
+
+    .photo-item__icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      opacity: 0;
+      transition: opacity 0.3s ease 0.05s, transform 0.3s ease 0.05s;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .photo-item:hover .photo-item__icon {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .photo-item__icon svg {
+      width: 40px;
+      height: 40px;
+      stroke: #fff;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    /* ===== Lightbox ===== */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 20, 18, 0.92);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .lightbox.active {
+      opacity: 1;
+    }
+
+    .lightbox.closing {
+      opacity: 0;
+    }
+
+    .lightbox__img-wrapper {
+      position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
+      transform: scale(0.88);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .lightbox.active .lightbox__img-wrapper {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .lightbox.closing .lightbox__img-wrapper {
+      transform: scale(0.92);
+      opacity: 0;
+    }
+
+    .lightbox__img {
+      max-width: 90vw;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 4px;
+      display: block;
+    }
+
+    .lightbox__close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 1001;
+      padding: 0.5rem;
+    }
+
+    .lightbox__close svg {
+      width: 28px;
+      height: 28px;
+      stroke: rgba(255, 255, 255, 0.7);
+      stroke-width: 1.5;
+      fill: none;
+      transition: stroke 0.2s;
+    }
+
+    .lightbox__close:hover svg {
+      stroke: #fff;
+    }
+
+    .lightbox__nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 1rem;
+      z-index: 1001;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+
+    .lightbox__nav:hover {
+      opacity: 1;
+    }
+
+    .lightbox__nav svg {
+      width: 32px;
+      height: 32px;
+      stroke: #fff;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .lightbox__prev { left: 1rem; }
+    .lightbox__next { right: 1rem; }
+
+    .lightbox__counter {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.6);
+      z-index: 1001;
+    }
+
+    .lightbox__caption {
+      position: absolute;
+      bottom: 3.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      white-space: nowrap;
+      z-index: 1001;
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      background-color: var(--color-surface);
+    }
+
+    .footer__divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      color: var(--color-accent);
+    }
+
+    .footer__divider::before,
+    .footer__divider::after {
+      content: '';
+      width: 60px;
+      height: 1px;
+      background-color: var(--color-accent);
+    }
+
+    .footer__divider span {
+      font-size: 14px;
+    }
+
+    .footer__quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 20px;
+      color: var(--color-text-mid);
+      margin-bottom: 2rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .footer__quote.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .footer__copyright {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--color-text-muted);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 900px) {
+      .gallery__grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero__names {
+        font-size: 28px;
+        letter-spacing: 4px;
+      }
+
+      .hero__names .amp {
+        font-size: 34px;
+      }
+
+      .hero__subtitle {
+        font-size: 11px;
+      }
+
+      .hero__date {
+        font-size: 13px;
+        letter-spacing: 3px;
+      }
+
+      .gallery__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .photo-item--hero {
+        aspect-ratio: 3/4;
+      }
+
+      .lightbox__nav {
+        display: none;
+      }
+
+      .footer__quote {
+        font-size: 17px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="hero">
+    <p class="hero__subtitle hero__item">Wedding Gallery</p>
+    <h1 class="hero__names hero__item">[新郎姓名]<span class="amp">&</span>[新娘姓名]</h1>
+    <div class="hero__divider hero__item">
+      <span>✦</span>
+    </div>
+    <p class="hero__date hero__item">[YYYY · MM · DD]</p>
+    <button class="hero__scroll hero__item" id="scrollBtn" aria-label="向下滾動至照片區">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </section>
+
+  <!-- ===== Gallery ===== -->
+  <section class="gallery" id="gallery">
+    <h2 class="gallery__title">— Our Story —</h2>
+    <div class="gallery__grid" id="galleryGrid"></div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="footer__divider"><span>✦</span></div>
+    <p class="footer__quote" id="footerQuote">「兩個人的故事，從這一天開始。」</p>
+    <p class="footer__copyright">© 2025 [新郎姓名] & [新娘姓名]</p>
+  </footer>
+
+  <!-- ===== Lightbox (injected by JS) ===== -->
+
+  <script>
+    /* ===== Photo Data ===== */
+    const photos = [
+      { src: './photos/4KK05998.jpg', caption: '' },
+      { src: './photos/4KK05934.jpg', caption: '' },
+      { src: './photos/4JJ08732.jpg', caption: '' },
+      { src: './photos/4JJ08365.jpg', caption: '' },
+      { src: './photos/4JJ08320.jpg', caption: '' },
+      { src: './photos/4JJ08514.jpg', caption: '' },
+      { src: './photos/4KK06542.jpg', caption: '' },
+      { src: './photos/4KK06370.jpg', caption: '' },
+      { src: './photos/4KK06326.jpg', caption: '' },
+      { src: './photos/4KK06197.jpg', caption: '' },
+    ];
+
+    /* ===== Hero Animation ===== */
+    document.addEventListener('DOMContentLoaded', () => {
+      const heroItems = document.querySelectorAll('.hero__item');
+      heroItems.forEach((item, i) => {
+        item.style.animationDelay = `${i * 0.2}s`;
+        item.classList.add('animate');
+      });
+
+      // Scroll button
+      document.getElementById('scrollBtn').addEventListener('click', () => {
+        document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      // Build gallery
+      buildGallery();
+
+      // Observe gallery items
+      observeGallery();
+
+      // Observe footer quote
+      observeFooter();
+    });
+
+    /* ===== Build Gallery ===== */
+    function buildGallery() {
+      const grid = document.getElementById('galleryGrid');
+      photos.forEach((photo, i) => {
+        const item = document.createElement('div');
+        item.className = 'photo-item' + (i === 0 ? ' photo-item--hero' : '');
+        item.style.transitionDelay = `${(i % 3) * 0.1}s`;
+        item.innerHTML = `
+          <img src="${photo.src}" alt="婚紗照 ${i + 1}" loading="${i < 4 ? 'eager' : 'lazy'}">
+          <div class="photo-item__icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7"/>
+              <line x1="16" y1="16" x2="21" y2="21"/>
+            </svg>
+          </div>
+        `;
+        item.addEventListener('click', () => openLightbox(i));
+        grid.appendChild(item);
+      });
+    }
+
+    /* ===== Scroll Reveal ===== */
+    function observeGallery() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.photo-item').forEach(item => observer.observe(item));
+    }
+
+    function observeFooter() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+
+      const quote = document.getElementById('footerQuote');
+      if (quote) observer.observe(quote);
+    }
+
+    /* ===== Lightbox ===== */
+    let currentIndex = 0;
+    let lightboxEl = null;
+    let touchStartX = 0;
+
+    function openLightbox(index) {
+      currentIndex = index;
+
+      const lb = document.createElement('div');
+      lb.className = 'lightbox';
+      lb.innerHTML = `
+        <button class="lightbox__close" aria-label="關閉"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button class="lightbox__nav lightbox__prev" aria-label="上一張"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="lightbox__nav lightbox__next" aria-label="下一張"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+        <div class="lightbox__img-wrapper">
+          <img class="lightbox__img" src="${photos[currentIndex].src}" alt="婚紗照 ${currentIndex + 1}">
+        </div>
+        ${photos[currentIndex].caption ? `<p class="lightbox__caption">${photos[currentIndex].caption}</p>` : ''}
+        <span class="lightbox__counter">${currentIndex + 1} / ${photos.length}</span>
+      `;
+
+      document.body.appendChild(lb);
+      document.body.style.overflow = 'hidden';
+      lightboxEl = lb;
+
+      // Force reflow then activate
+      lb.offsetHeight;
+      requestAnimationFrame(() => lb.classList.add('active'));
+
+      // Events
+      lb.querySelector('.lightbox__close').addEventListener('click', closeLightbox);
+      lb.querySelector('.lightbox__prev').addEventListener('click', () => navigateLightbox(-1));
+      lb.querySelector('.lightbox__next').addEventListener('click', () => navigateLightbox(1));
+      lb.addEventListener('click', (e) => {
+        if (e.target === lb) closeLightbox();
+      });
+
+      // Touch swipe
+      lb.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+      lb.addEventListener('touchend', (e) => {
+        const diff = e.changedTouches[0].screenX - touchStartX;
+        if (Math.abs(diff) > 50) {
+          navigateLightbox(diff > 0 ? -1 : 1);
+        }
+      }, { passive: true });
+
+      // Keyboard
+      document.addEventListener('keydown', handleLightboxKey);
+    }
+
+    function closeLightbox() {
+      if (!lightboxEl) return;
+      lightboxEl.classList.remove('active');
+      lightboxEl.classList.add('closing');
+      document.removeEventListener('keydown', handleLightboxKey);
+
+      setTimeout(() => {
+        if (lightboxEl) {
+          lightboxEl.remove();
+          lightboxEl = null;
+          document.body.style.overflow = '';
+        }
+      }, 250);
+    }
+
+    function navigateLightbox(dir) {
+      currentIndex = (currentIndex + dir + photos.length) % photos.length;
+      if (!lightboxEl) return;
+
+      const img = lightboxEl.querySelector('.lightbox__img');
+      const counter = lightboxEl.querySelector('.lightbox__counter');
+      const caption = lightboxEl.querySelector('.lightbox__caption');
+
+      img.src = photos[currentIndex].src;
+      img.alt = `婚紗照 ${currentIndex + 1}`;
+      counter.textContent = `${currentIndex + 1} / ${photos.length}`;
+
+      if (caption) {
+        if (photos[currentIndex].caption) {
+          caption.textContent = photos[currentIndex].caption;
+        } else {
+          caption.remove();
+        }
+      } else if (photos[currentIndex].caption) {
+        const newCaption = document.createElement('p');
+        newCaption.className = 'lightbox__caption';
+        newCaption.textContent = photos[currentIndex].caption;
+        lightboxEl.appendChild(newCaption);
+      }
+    }
+
+    function handleLightboxKey(e) {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') navigateLightbox(-1);
+      if (e.key === 'ArrowRight') navigateLightbox(1);
+    }
+  </script>
+</body>
+</html>
