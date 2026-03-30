@@ -58,6 +58,72 @@
       50% { transform: translateY(8px); }
     }
 
+    @keyframes carouselFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes carouselFadeOut {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.95); }
+    }
+
+    /* ===== Character Carousel ===== */
+    .character-carousel {
+      width: 180px;
+      height: 180px;
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .character-carousel img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      transform: scale(0.95);
+    }
+
+    .character-carousel img.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ===== Flower Carousel ===== */
+    .flower-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+
+    .flower-carousel {
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 3/2;
+      position: relative;
+      margin: 0 auto;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .flower-carousel img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .flower-carousel img.active {
+      opacity: 1;
+    }
+
     /* ===== Hero Section ===== */
     .hero {
       width: 100%;
@@ -484,6 +550,12 @@
 
   <!-- ===== Hero ===== -->
   <section class="hero" id="hero">
+    <div class="character-carousel hero__item" id="characterCarousel">
+      <img src="./photos/characters/wedding-character-transparent (1).png" alt="婚紗角色 1" class="active">
+      <img src="./photos/characters/wedding-character-transparent (2).png" alt="婚紗角色 2">
+      <img src="./photos/characters/wedding-character-transparent (3).png" alt="婚紗角色 3">
+      <img src="./photos/characters/wedding-character-transparent (4).png" alt="婚紗角色 4">
+    </div>
     <p class="hero__subtitle hero__item">Wedding Gallery</p>
     <h1 class="hero__names hero__item">[新郎姓名]<span class="amp">&</span>[新娘姓名]</h1>
     <div class="hero__divider hero__item">
@@ -501,6 +573,16 @@
     <div class="gallery__grid" id="galleryGrid"></div>
   </section>
 
+  <!-- ===== Flower Carousel ===== -->
+  <section class="flower-section">
+    <div class="flower-carousel" id="flowerCarousel">
+      <img src="./photos/flowers/4KK06282.jpg" alt="花卉 1" class="active">
+      <img src="./photos/flowers/4KK06292.jpg" alt="花卉 2">
+      <img src="./photos/flowers/4KK06305.jpg" alt="花卉 3">
+      <img src="./photos/flowers/4KK06312.jpg" alt="花卉 4">
+    </div>
+  </section>
+
   <!-- ===== Footer ===== -->
   <footer class="footer">
     <div class="footer__divider"><span>✦</span></div>
@@ -513,6 +595,7 @@
   <script>
     /* ===== Photo Data ===== */
     const photos = [
+      { src: './photos/4KK05980.jpg', caption: '', landscape: true },
       { src: './photos/4KK05998.jpg', caption: '' },
       { src: './photos/4KK05934.jpg', caption: '' },
       { src: './photos/4JJ08732.jpg', caption: '' },
@@ -522,7 +605,9 @@
       { src: './photos/4KK06542.jpg', caption: '' },
       { src: './photos/4KK06370.jpg', caption: '' },
       { src: './photos/4KK06326.jpg', caption: '' },
-      { src: './photos/4KK06197.jpg', caption: '' },
+      { src: './photos/4KK06197.jpg', caption: '', landscape: true },
+      { src: './photos/4KK06017.jpg', caption: '' },
+      { src: './photos/4KK06224.jpg', caption: '' },
     ];
 
     /* ===== Hero Animation ===== */
@@ -538,6 +623,10 @@
         document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
       });
 
+      // Start carousels
+      startCarousel('characterCarousel', 3000);
+      startCarousel('flowerCarousel', 1000);
+
       // Build gallery
       buildGallery();
 
@@ -548,12 +637,26 @@
       observeFooter();
     });
 
+    /* ===== Carousel ===== */
+    function startCarousel(containerId, interval) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const imgs = container.querySelectorAll('img');
+      if (imgs.length === 0) return;
+      let current = 0;
+      setInterval(() => {
+        imgs[current].classList.remove('active');
+        current = (current + 1) % imgs.length;
+        imgs[current].classList.add('active');
+      }, interval);
+    }
+
     /* ===== Build Gallery ===== */
     function buildGallery() {
       const grid = document.getElementById('galleryGrid');
       photos.forEach((photo, i) => {
         const item = document.createElement('div');
-        item.className = 'photo-item' + (i === 0 ? ' photo-item--hero' : '');
+        item.className = 'photo-item' + (photo.landscape ? ' photo-item--hero' : '');
         item.style.transitionDelay = `${(i % 3) * 0.1}s`;
         item.innerHTML = `
           <img src="${photo.src}" alt="婚紗照 ${i + 1}" loading="${i < 4 ? 'eager' : 'lazy'}">
