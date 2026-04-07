@@ -473,6 +473,19 @@
       position: relative;
       aspect-ratio: 8/5;
       max-height: 70vh;
+      /* Book thickness effect */
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-surface);
+      box-shadow:
+        0 1px 0 rgba(61,47,42,0.08),
+        0 3px 0 var(--color-surface),
+        0 4px 0 rgba(61,47,42,0.08),
+        0 6px 0 var(--color-surface),
+        0 7px 0 rgba(61,47,42,0.06),
+        0 9px 0 var(--color-surface),
+        0 10px 0 rgba(61,47,42,0.04),
+        0 14px 25px rgba(61,47,42,0.15);
     }
 
     .flipbook__page {
@@ -481,7 +494,6 @@
       height: 100%;
       backface-visibility: hidden;
       overflow: hidden;
-      box-shadow: 0 2px 20px rgba(61, 47, 42, 0.15);
     }
 
     .flipbook__page img {
@@ -491,14 +503,29 @@
       display: block;
     }
 
-    .flipbook__page--left {
-      left: 0;
+    .flipbook__spread {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      visibility: hidden;
+      z-index: 1;
+    }
+
+    .flipbook__spread.active {
+      visibility: visible;
+      z-index: 2;
+    }
+
+    .flipbook__spread .flipbook__page--left {
+      position: relative;
+      width: 50%;
       border-radius: 4px 0 0 4px;
       transform-origin: right center;
     }
 
-    .flipbook__page--right {
-      right: 0;
+    .flipbook__spread .flipbook__page--right {
+      position: relative;
+      width: 50%;
       border-radius: 0 4px 4px 0;
       transform-origin: left center;
     }
@@ -508,9 +535,14 @@
       left: 50%;
       top: 0;
       bottom: 0;
-      width: 4px;
+      width: 6px;
       transform: translateX(-50%);
-      background: linear-gradient(90deg, rgba(61,47,42,0.12), rgba(61,47,42,0.03), rgba(61,47,42,0.12));
+      background: linear-gradient(90deg,
+        rgba(61,47,42,0.15),
+        rgba(61,47,42,0.05) 40%,
+        rgba(61,47,42,0.02) 50%,
+        rgba(61,47,42,0.05) 60%,
+        rgba(61,47,42,0.15));
       z-index: 10;
       pointer-events: none;
     }
@@ -743,9 +775,8 @@
     <h2 class="gallery__title">— Album —</h2>
     <div class="flipbook" id="flipbook">
       <div class="flipbook__book" id="flipbookBook">
-        <div class="flipbook__page flipbook__page--left" id="flipLeft"></div>
+        <!-- Spreads built by JS -->
         <div class="flipbook__spine"></div>
-        <div class="flipbook__page flipbook__page--right" id="flipRight"></div>
       </div>
       <button class="flipbook__nav flipbook__prev" id="flipPrev" aria-label="上一頁">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -778,9 +809,11 @@
 
   <script>
     /* ===== Photo Data ===== */
-    // Grid gallery photos (all landscape)
+    // Grid gallery photos
     const gridPhotos = [
       { src: './photos/4KK05980.jpg', caption: '', landscape: true },
+      { src: './photos/1.jpg', caption: '' },
+      { src: './photos/3.jpg', caption: '' },
       { src: './photos/4KK06197.jpg', caption: '', landscape: true },
       { src: './photos/4JJ08767.jpg', caption: '', landscape: true },
       { src: './photos/4KK06105.jpg', caption: '', landscape: true },
@@ -871,19 +904,59 @@
     /* ===== Flipbook ===== */
     let flipPage = 0;
     let flipAnimating = false;
+    let spreads = [];
 
     function initFlipbook() {
+      const book = document.getElementById('flipbookBook');
       const prevBtn = document.getElementById('flipPrev');
       const nextBtn = document.getElementById('flipNext');
-      if (!prevBtn || !nextBtn) return;
+      if (!book || !prevBtn || !nextBtn) return;
 
-      renderFlipbook();
+      const totalSpreads = Math.ceil(bookPhotos.length / 2);
+
+      // Pre-render all spreads
+      for (let s = 0; s < totalSpreads; s++) {
+        const spread = document.createElement('div');
+        spread.className = 'flipbook__spread' + (s === 0 ? ' active' : '');
+
+        const li = s * 2;
+        const ri = s * 2 + 1;
+
+        const leftPage = document.createElement('div');
+        leftPage.className = 'flipbook__page flipbook__page--left';
+        if (li < bookPhotos.length) {
+          const img = document.createElement('img');
+          img.src = bookPhotos[li].src;
+          img.alt = '相簿 ' + (li + 1);
+          img.style.cursor = 'pointer';
+          leftPage.appendChild(img);
+        }
+
+        const rightPage = document.createElement('div');
+        rightPage.className = 'flipbook__page flipbook__page--right';
+        if (ri < bookPhotos.length) {
+          const img = document.createElement('img');
+          img.src = bookPhotos[ri].src;
+          img.alt = '相簿 ' + (ri + 1);
+          img.style.cursor = 'pointer';
+          rightPage.appendChild(img);
+        }
+
+        spread.appendChild(leftPage);
+        spread.appendChild(rightPage);
+        book.insertBefore(spread, book.querySelector('.flipbook__spine'));
+        spreads.push(spread);
+      }
+
+      // Preload all album images
+      bookPhotos.forEach(p => { const img = new Image(); img.src = p.src; });
+
+      updateFlipCounter();
 
       prevBtn.addEventListener('click', () => flipTo(-1));
       nextBtn.addEventListener('click', () => flipTo(1));
 
-      // Touch swipe on flipbook
-      const book = document.getElementById('flipbookBook');
+      // Touch swipe
       let touchX = 0;
       book.addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].screenX; }, { passive: true });
       book.addEventListener('touchend', (e) => {
@@ -903,57 +976,49 @@
       });
     }
 
-    function renderFlipbook() {
-      const left = document.getElementById('flipLeft');
-      const right = document.getElementById('flipRight');
+    function updateFlipCounter() {
       const counter = document.getElementById('flipCounter');
-      const totalPages = Math.ceil(bookPhotos.length / 2);
-
-      const li = flipPage * 2;
-      const ri = flipPage * 2 + 1;
-
-      left.innerHTML = li < bookPhotos.length
-        ? `<img src="${bookPhotos[li].src}" alt="相簿 ${li + 1}" style="cursor:pointer">`
-        : '';
-      right.innerHTML = ri < bookPhotos.length
-        ? `<img src="${bookPhotos[ri].src}" alt="相簿 ${ri + 1}" style="cursor:pointer">`
-        : '';
-
-      counter.textContent = `${flipPage + 1} / ${totalPages}`;
-
+      counter.textContent = `${flipPage + 1} / ${spreads.length}`;
       document.getElementById('flipPrev').disabled = flipPage === 0;
-      document.getElementById('flipNext').disabled = flipPage >= totalPages - 1;
+      document.getElementById('flipNext').disabled = flipPage >= spreads.length - 1;
     }
 
     function flipTo(dir) {
       if (flipAnimating) return;
-      const totalPages = Math.ceil(bookPhotos.length / 2);
       const next = flipPage + dir;
-      if (next < 0 || next >= totalPages) return;
+      if (next < 0 || next >= spreads.length) return;
 
       flipAnimating = true;
-      const right = document.getElementById('flipRight');
-      const left = document.getElementById('flipLeft');
+      const currentSpread = spreads[flipPage];
+      const nextSpread = spreads[next];
 
       if (dir === 1) {
-        // Flip right page forward
-        right.style.transformStyle = 'preserve-3d';
-        right.classList.add('flipbook__page--turning-fwd');
+        const rightPage = currentSpread.querySelector('.flipbook__page--right');
+        rightPage.classList.add('flipbook__page--turning-fwd');
+        setTimeout(() => {
+          rightPage.classList.remove('flipbook__page--turning-fwd');
+          currentSpread.classList.remove('active');
+          nextSpread.classList.add('active');
+          flipPage = next;
+          updateFlipCounter();
+          flipAnimating = false;
+        }, 700);
       } else {
-        // Flip left page back
-        left.style.transformStyle = 'preserve-3d';
-        left.classList.add('flipbook__page--turning-in');
+        nextSpread.classList.add('active');
+        const leftPage = nextSpread.querySelector('.flipbook__page--left');
+        leftPage.style.transform = 'rotateY(-180deg)';
+        leftPage.offsetHeight; // force reflow
+        leftPage.style.transition = 'transform 0.7s ease-in-out';
+        leftPage.style.transform = 'rotateY(0deg)';
+        setTimeout(() => {
+          leftPage.style.transition = '';
+          leftPage.style.transform = '';
+          currentSpread.classList.remove('active');
+          flipPage = next;
+          updateFlipCounter();
+          flipAnimating = false;
+        }, 700);
       }
-
-      setTimeout(() => {
-        flipPage = next;
-        right.classList.remove('flipbook__page--turning-fwd');
-        left.classList.remove('flipbook__page--turning-in');
-        right.style.transformStyle = '';
-        left.style.transformStyle = '';
-        renderFlipbook();
-        flipAnimating = false;
-      }, 700);
     }
 
     /* ===== Scroll Reveal ===== */
