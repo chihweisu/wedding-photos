@@ -464,7 +464,6 @@
       width: 100%;
       max-width: 900px;
       margin: 0 auto;
-      perspective: 1800px;
     }
 
     .flipbook__book {
@@ -489,10 +488,6 @@
     }
 
     .flipbook__page {
-      position: absolute;
-      width: 50%;
-      height: 100%;
-      backface-visibility: hidden;
       overflow: hidden;
     }
 
@@ -507,27 +502,71 @@
       position: absolute;
       inset: 0;
       display: flex;
-      visibility: hidden;
+      opacity: 0;
       z-index: 1;
+      pointer-events: none;
+      will-change: opacity, transform;
+      transform: translate3d(0,0,0);
     }
 
     .flipbook__spread.active {
-      visibility: visible;
+      opacity: 1;
       z-index: 2;
+      pointer-events: auto;
+    }
+
+    .flipbook__spread.flip-out-fwd {
+      animation: spreadOutFwd 0.5s ease-in-out forwards;
+      z-index: 3;
+    }
+
+    .flipbook__spread.flip-in-fwd {
+      animation: spreadInFwd 0.5s ease-in-out forwards;
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    .flipbook__spread.flip-out-back {
+      animation: spreadOutBack 0.5s ease-in-out forwards;
+      z-index: 3;
+    }
+
+    .flipbook__spread.flip-in-back {
+      animation: spreadInBack 0.5s ease-in-out forwards;
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    @keyframes spreadOutFwd {
+      0%   { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+      100% { opacity: 0; transform: translate3d(-30px,0,0) scale(0.97); }
+    }
+
+    @keyframes spreadInFwd {
+      0%   { opacity: 0; transform: translate3d(30px,0,0) scale(0.97); }
+      100% { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+    }
+
+    @keyframes spreadOutBack {
+      0%   { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+      100% { opacity: 0; transform: translate3d(30px,0,0) scale(0.97); }
+    }
+
+    @keyframes spreadInBack {
+      0%   { opacity: 0; transform: translate3d(-30px,0,0) scale(0.97); }
+      100% { opacity: 1; transform: translate3d(0,0,0) scale(1); }
     }
 
     .flipbook__spread .flipbook__page--left {
       position: relative;
       width: 50%;
       border-radius: 4px 0 0 4px;
-      transform-origin: right center;
     }
 
     .flipbook__spread .flipbook__page--right {
       position: relative;
       width: 50%;
       border-radius: 0 4px 4px 0;
-      transform-origin: left center;
     }
 
     .flipbook__spine {
@@ -545,26 +584,6 @@
         rgba(61,47,42,0.15));
       z-index: 10;
       pointer-events: none;
-    }
-
-    .flipbook__page--turning-fwd {
-      animation: flipForward 0.7s ease-in-out forwards;
-      z-index: 5;
-    }
-
-    .flipbook__page--turning-in {
-      animation: flipIn 0.7s ease-in-out forwards;
-      z-index: 4;
-    }
-
-    @keyframes flipForward {
-      0% { transform: rotateY(0deg); }
-      100% { transform: rotateY(-180deg); }
-    }
-
-    @keyframes flipIn {
-      0% { transform: rotateY(180deg); }
-      100% { transform: rotateY(0deg); }
     }
 
     .flipbook__nav {
@@ -992,33 +1011,21 @@
       const currentSpread = spreads[flipPage];
       const nextSpread = spreads[next];
 
-      if (dir === 1) {
-        const rightPage = currentSpread.querySelector('.flipbook__page--right');
-        rightPage.classList.add('flipbook__page--turning-fwd');
-        setTimeout(() => {
-          rightPage.classList.remove('flipbook__page--turning-fwd');
-          currentSpread.classList.remove('active');
-          nextSpread.classList.add('active');
-          flipPage = next;
-          updateFlipCounter();
-          flipAnimating = false;
-        }, 700);
-      } else {
+      const outClass = dir === 1 ? 'flip-out-fwd' : 'flip-out-back';
+      const inClass = dir === 1 ? 'flip-in-fwd' : 'flip-in-back';
+
+      currentSpread.classList.remove('active');
+      currentSpread.classList.add(outClass);
+      nextSpread.classList.add(inClass);
+
+      setTimeout(() => {
+        currentSpread.classList.remove(outClass);
+        nextSpread.classList.remove(inClass);
         nextSpread.classList.add('active');
-        const leftPage = nextSpread.querySelector('.flipbook__page--left');
-        leftPage.style.transform = 'rotateY(-180deg)';
-        leftPage.offsetHeight; // force reflow
-        leftPage.style.transition = 'transform 0.7s ease-in-out';
-        leftPage.style.transform = 'rotateY(0deg)';
-        setTimeout(() => {
-          leftPage.style.transition = '';
-          leftPage.style.transform = '';
-          currentSpread.classList.remove('active');
-          flipPage = next;
-          updateFlipCounter();
-          flipAnimating = false;
-        }, 700);
-      }
+        flipPage = next;
+        updateFlipCounter();
+        flipAnimating = false;
+      }, 500);
     }
 
     /* ===== Scroll Reveal ===== */
