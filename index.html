@@ -246,6 +246,25 @@
       gap: 3px;
     }
 
+    .gallery__grid--landscape {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .portrait-pair {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .portrait-pair .photo-item {
+      flex: 0 1 400px;
+      aspect-ratio: 3/4;
+    }
+
     /* ===== Photo Item ===== */
     .photo-item {
       position: relative;
@@ -264,7 +283,6 @@
     }
 
     .photo-item--hero {
-      grid-column: 1 / -1;
       aspect-ratio: 16/9;
     }
 
@@ -749,7 +767,15 @@
       }
 
       .photo-item--hero {
-        aspect-ratio: 3/4;
+        aspect-ratio: 16/9;
+      }
+
+      .portrait-pair {
+        gap: 12px;
+      }
+
+      .portrait-pair .photo-item {
+        flex: 0 1 50%;
       }
 
       .lightbox__nav {
@@ -783,18 +809,27 @@
     </button>
   </section>
 
-  <!-- ===== Gallery ===== -->
+  <!-- ===== 1. 兩張橫的 ===== -->
   <section class="gallery" id="gallery">
     <h2 class="gallery__title">— Our Story —</h2>
-    <div class="gallery__grid" id="galleryGrid"></div>
+    <div class="gallery__grid gallery__grid--landscape" id="section1"></div>
   </section>
 
-  <!-- ===== Flipbook ===== -->
+  <!-- ===== 2. 兩張直的並排 ===== -->
+  <section class="gallery">
+    <div class="portrait-pair" id="section2"></div>
+  </section>
+
+  <!-- ===== 3. 兩張橫的 ===== -->
+  <section class="gallery">
+    <div class="gallery__grid gallery__grid--landscape" id="section3"></div>
+  </section>
+
+  <!-- ===== 4. 相簿 ===== -->
   <section class="flipbook-section" id="flipbookSection">
     <h2 class="gallery__title">— Album —</h2>
     <div class="flipbook" id="flipbook">
       <div class="flipbook__book" id="flipbookBook">
-        <!-- Spreads built by JS -->
         <div class="flipbook__spine"></div>
       </div>
       <button class="flipbook__nav flipbook__prev" id="flipPrev" aria-label="上一頁">
@@ -807,7 +842,12 @@
     </div>
   </section>
 
-  <!-- ===== Flower Carousel ===== -->
+  <!-- ===== 5. 兩張橫的 ===== -->
+  <section class="gallery">
+    <div class="gallery__grid gallery__grid--landscape" id="section5"></div>
+  </section>
+
+  <!-- ===== 6. 四格照片切換 ===== -->
   <section class="flower-section">
     <div class="flower-carousel" id="flowerCarousel">
       <img src="./photos/flowers/4KK06282.jpg" alt="花卉 1" class="active">
@@ -828,17 +868,24 @@
 
   <script>
     /* ===== Photo Data ===== */
-    // Grid gallery photos
-    const gridPhotos = [
+    // Section layout
+    const section1Photos = [
       { src: './photos/4KK05980.jpg', caption: '', landscape: true },
+      { src: './photos/4KK06197.jpg', caption: '', landscape: true },
+    ];
+    const section2Photos = [
       { src: './photos/1.jpg', caption: '' },
       { src: './photos/3.jpg', caption: '' },
-      { src: './photos/4KK06197.jpg', caption: '', landscape: true },
+    ];
+    const section3Photos = [
       { src: './photos/4JJ08767.jpg', caption: '', landscape: true },
       { src: './photos/4KK06105.jpg', caption: '', landscape: true },
+    ];
+    const section5Photos = [
       { src: './photos/4KK06620.jpg', caption: '', landscape: true },
       { src: './photos/DJI_20260316144730_0006_D.jpg', caption: '', landscape: true },
     ];
+    const gridPhotos = [...section1Photos, ...section2Photos, ...section3Photos, ...section5Photos];
 
     // Flipbook album photos (4 pairs)
     const bookPhotos = [
@@ -872,8 +919,8 @@
       startCarousel('characterCarousel', 1500);
       startCarousel('flowerCarousel', 1000);
 
-      // Build gallery
-      buildGallery();
+      // Build sections
+      buildSections();
 
       // Init flipbook
       initFlipbook();
@@ -899,24 +946,32 @@
       }, interval);
     }
 
-    /* ===== Build Gallery ===== */
-    function buildGallery() {
-      const grid = document.getElementById('galleryGrid');
-      gridPhotos.forEach((photo, i) => {
-        const item = document.createElement('div');
-        item.className = 'photo-item' + (photo.landscape ? ' photo-item--hero' : '');
-        item.style.transitionDelay = `${(i % 3) * 0.1}s`;
-        item.innerHTML = `
-          <img src="${photo.src}" alt="婚紗照 ${i + 1}" loading="${i < 4 ? 'eager' : 'lazy'}">
-          <div class="photo-item__icon">
-            <svg viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="7"/>
-              <line x1="16" y1="16" x2="21" y2="21"/>
-            </svg>
-          </div>
-        `;
-        item.addEventListener('click', () => openLightbox(i));
-        grid.appendChild(item);
+    /* ===== Build Sections ===== */
+    function buildSections() {
+      const sections = [
+        { id: 'section1', photos: section1Photos, offset: 0 },
+        { id: 'section2', photos: section2Photos, offset: section1Photos.length },
+        { id: 'section3', photos: section3Photos, offset: section1Photos.length + section2Photos.length },
+        { id: 'section5', photos: section5Photos, offset: section1Photos.length + section2Photos.length + section3Photos.length },
+      ];
+
+      sections.forEach(({ id, photos: sectionPhotos, offset }) => {
+        const container = document.getElementById(id);
+        sectionPhotos.forEach((photo, i) => {
+          const item = document.createElement('div');
+          item.className = 'photo-item' + (photo.landscape ? ' photo-item--hero' : '');
+          item.innerHTML = `
+            <img src="${photo.src}" alt="婚紗照" loading="${offset + i < 4 ? 'eager' : 'lazy'}">
+            <div class="photo-item__icon">
+              <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7"/>
+                <line x1="16" y1="16" x2="21" y2="21"/>
+              </svg>
+            </div>
+          `;
+          item.addEventListener('click', () => openLightbox(offset + i));
+          container.appendChild(item);
+        });
       });
     }
 
