@@ -654,18 +654,19 @@
 
     @media (max-width: 600px) {
       .flipbook__book {
-        aspect-ratio: 4/5;
+        aspect-ratio: 3/4;
       }
 
-      .flipbook__page {
+      .flipbook__spread {
+        display: block;
+      }
+
+      .flipbook__spread .flipbook__page--left,
+      .flipbook__spread .flipbook__page--right {
         width: 100%;
-      }
-
-      .flipbook__page--left {
-        display: none;
-      }
-
-      .flipbook__page--right {
+        height: 100%;
+        position: absolute;
+        inset: 0;
         border-radius: 4px;
       }
 
@@ -986,38 +987,54 @@
       const nextBtn = document.getElementById('flipNext');
       if (!book || !prevBtn || !nextBtn) return;
 
-      const totalSpreads = Math.ceil(bookPhotos.length / 2);
+      const isMobile = window.innerWidth <= 600;
+      const perSpread = isMobile ? 1 : 2;
+      const totalSpreads = Math.ceil(bookPhotos.length / perSpread);
 
       // Pre-render all spreads
       for (let s = 0; s < totalSpreads; s++) {
         const spread = document.createElement('div');
         spread.className = 'flipbook__spread' + (s === 0 ? ' active' : '');
 
-        const li = s * 2;
-        const ri = s * 2 + 1;
-
-        const leftPage = document.createElement('div');
-        leftPage.className = 'flipbook__page flipbook__page--left';
-        if (li < bookPhotos.length) {
+        if (isMobile) {
+          // Single photo per spread on mobile
+          const page = document.createElement('div');
+          page.className = 'flipbook__page flipbook__page--right';
           const img = document.createElement('img');
-          img.src = bookPhotos[li].src;
-          img.alt = '相簿 ' + (li + 1);
+          img.src = bookPhotos[s].src;
+          img.alt = '相簿 ' + (s + 1);
           img.style.cursor = 'pointer';
-          leftPage.appendChild(img);
+          page.appendChild(img);
+          spread.appendChild(page);
+        } else {
+          // Two photos per spread on desktop
+          const li = s * 2;
+          const ri = s * 2 + 1;
+
+          const leftPage = document.createElement('div');
+          leftPage.className = 'flipbook__page flipbook__page--left';
+          if (li < bookPhotos.length) {
+            const img = document.createElement('img');
+            img.src = bookPhotos[li].src;
+            img.alt = '相簿 ' + (li + 1);
+            img.style.cursor = 'pointer';
+            leftPage.appendChild(img);
+          }
+
+          const rightPage = document.createElement('div');
+          rightPage.className = 'flipbook__page flipbook__page--right';
+          if (ri < bookPhotos.length) {
+            const img = document.createElement('img');
+            img.src = bookPhotos[ri].src;
+            img.alt = '相簿 ' + (ri + 1);
+            img.style.cursor = 'pointer';
+            rightPage.appendChild(img);
+          }
+
+          spread.appendChild(leftPage);
+          spread.appendChild(rightPage);
         }
 
-        const rightPage = document.createElement('div');
-        rightPage.className = 'flipbook__page flipbook__page--right';
-        if (ri < bookPhotos.length) {
-          const img = document.createElement('img');
-          img.src = bookPhotos[ri].src;
-          img.alt = '相簿 ' + (ri + 1);
-          img.style.cursor = 'pointer';
-          rightPage.appendChild(img);
-        }
-
-        spread.appendChild(leftPage);
-        spread.appendChild(rightPage);
         book.insertBefore(spread, book.querySelector('.flipbook__spine'));
         spreads.push(spread);
       }
@@ -1043,7 +1060,7 @@
         const page = e.target.closest('.flipbook__page');
         if (!page || flipAnimating) return;
         const isLeft = page.classList.contains('flipbook__page--left');
-        const idx = flipPage * 2 + (isLeft ? 0 : 1);
+        const idx = isMobile ? flipPage : flipPage * 2 + (isLeft ? 0 : 1);
         if (idx < bookPhotos.length) {
           openLightbox(gridPhotos.length + idx);
         }
